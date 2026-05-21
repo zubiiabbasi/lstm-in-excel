@@ -9,7 +9,7 @@ This workbook (`LSTM.xlsx`) implements a **single time-step LSTM cell** forward 
 | Sheet | Range | Role |
 |-------|--------|------|
 | **Forget Gate** | A1:Q21 | Computes forget gate $f_t$ |
-| **Input Gate** | A1:T34 | Input gate $i_t$, candidate $\tilde{C}_t$, cell state $C_t$ |
+| **Input Gate** | A1:T28 | Input gate $i_t$, candidate $\tilde{C}_t$, cell state $C_t$ |
 | **Cell State & Output** | A1:Q25 | Output gate $o_t$ and hidden state $h_t$ |
 
 There is **no Back Propagation sheet** in the current file (only forward pass). You can add training/backprop later if needed.
@@ -39,6 +39,12 @@ Forget Gate  ──f_t, h_(t-1), x_t──►  Input Gate  ──C_t──►  C
 
 - **Input Gate** reads $f_t$ from `'Forget Gate'!O5:O7` and reuses $h_{t-1}$, $x_t$ from Forget Gate.
 - **Cell State & Output** reads $C_t$ from `'Input Gate'!T5:T7` and again uses $h_{t-1}$, $x_t$ from Forget Gate.
+
+---
+
+## Layout note
+
+Each sheet title (e.g. **Forget Gate**) is in cell **I1**. Calculation blocks use columns **B–G** for $h_{t-1}$ / $x_t$ / weights and **L–T** (Input Gate) or **M–Q** (other sheets) for per-cell results.
 
 ---
 
@@ -90,44 +96,44 @@ For each cell (1–3):
 - $\tilde{C}_t = \tanh(W_C \cdot z + b_C)$
 - $C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t$
 
-### From Forget Gate (linked)
+Row **4** is the header row; rows **5–7** are Cell 1, 2, and 3.
 
-| Item | Reference |
-|------|-----------|
-| $f_t$ (3 cells) | `'Forget Gate'!O5`, `O6`, `O7` |
-| $h_{t-1}$, $x_t$ | `'Forget Gate'!B4:D4`, `B6:D6` |
+### Per row (rows 5–7) — main columns
 
-### Previous cell state $C_{t-1}$ (editable)
+| Column | Meaning | Example (Cell 1, row 5) |
+|--------|---------|-------------------------|
+| **B** | $f_t$ (from Forget Gate) | `='Forget Gate'!O5` |
+| **D** | $C_{t-1}$ (editable) | `0.033` |
+| **F** | $f_t \cdot C_{t-1}$ | `=B5*D5` |
+| **J → K → L** | Input gate: `MMULT` → + $b_i$ → sigmoid → **$i_t$** | `L5` |
+| **O → P → Q** | Candidate: `MMULT` → + $b_C$ → `TANH` → **$\tilde{C}_t$** | `Q5` |
+| **S** | $i_t \cdot \tilde{C}_t$ | `=L5*Q5` |
+| **T** | **$C_t$** | `=F5+S5` |
 
-| Cells | Default |
-|--------|---------|
-| B8, B9, B10 | 0.033, 0.589, 0.924 |
+### Linked inputs (rows 11 & 13)
+
+| Label | Cells |
+|--------|--------|
+| $h_{t-1}$ | B11:D11 → `'Forget Gate'!B4:D4` |
+| $x_t$ | B13:D13 → `'Forget Gate'!B6:D6` |
 
 ### Weights and biases
 
 | Label | Cells |
 |--------|--------|
-| $W_i$ | B21:G23 |
-| $W_C$ | I21:N23 |
-| $b_i$ | B25:D25 |
-| $b_C$ | J25:L25 |
-
-### Per-cell blocks (rows 5–7)
-
-**Input gate (sigmoid):** `MMULT` → + `b_i` → `1/(1+EXP(-K))` → **L** = $i_t$
-
-**Candidate (tanh):** `MMULT` with $W_C$ → + `b_C` → `TANH` → **Q** = $\tilde{C}_t$
-
-**Cell state:** **S** = `L * Q` (i_t · C̃_t), then **T** = `f_t * C_(t-1) + S` → **$C_t$**
-
-Intermediate row 13: `f_t * C_(t-1)` per cell (e.g. B13 = B4×B8).
+| $W_i$ | B15:G17 |
+| $W_C$ | I15:N17 |
+| $b_i$ | B19:D19 |
+| $b_C$ | J19:L19 |
 
 ### Vector $z$ on this sheet
 
 | Label | Cells |
 |--------|--------|
-| $h_{t-1}+x_t$ | B27:G27 |
-| Transpose | B29:B34 |
+| $h_{t-1}+x_t$ (horizontal) | B21:G21 |
+| Transpose of $z$ (for `MMULT`) | B23:B28 |
+
+Formula labels on this sheet: **P13** ($i_t$), **P15** ($\tilde{C}_t$), **P17** ($C_t$ equation).
 
 ---
 
@@ -187,7 +193,7 @@ Open the file in **Microsoft Excel** (or compatible) and press **F9** if values 
 Suggested checks:
 
 - Set all forget gate outputs near 1 → old cell state is mostly kept.  
-- Change $C_{t-1}$ on Input Gate (B8:B10) → $C_t$ and $h_t$ should change.  
+- Change $C_{t-1}$ on Input Gate (**D5:D7**) → **T5:T7** ($C_t$) and **Q5:Q7** ($h_t$) should change.  
 - Tweak one weight in $W_o$ → only output/hidden path should shift strongly.
 
 ---
@@ -211,7 +217,7 @@ This README was written from the live workbook using the **Excel MCP server** (`
 Example sheets and ranges:
 
 - Forget Gate: `A1:Q21`  
-- Input Gate: `A1:T34`  
+- Input Gate: `A1:T28`  
 - Cell State & Output: `A1:Q25`
 
 ---
