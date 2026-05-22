@@ -207,21 +207,6 @@ Suggested checks:
 
 ---
 
-## Reading the workbook with Excel MCP
-
-This README was written from the live workbook using the **Excel MCP server** (`get_workbook_metadata`, `read_data_from_excel`). To inspect cells yourself:
-
-- **Metadata:** sheet names and used ranges  
-- **Read:** pass `filepath`, `sheet_name`, and optional `start_cell` / `end_cell`
-
-Example sheets and ranges:
-
-- Forget Gate: `A1:Q21`  
-- Input Gate: `A1:T28`  
-- Cell State & Output: `A1:Q25`
-
----
-
 ## Summary
 
 | Question | Answer |
